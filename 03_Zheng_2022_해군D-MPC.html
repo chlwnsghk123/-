@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>03 · Zheng (2022) — 해군 D-MPC HESS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#f5f6f8;--white:#fff;--text-primary:#191f28;--text-secondary:#4e5968;--text-tertiary:#8b95a1;--blue:#3182f6;--blue-light:#e8f3ff;--blue-bg:#f2f7ff;--red:#f04452;--red-light:#fff0f0;--green:#00c471;--green-light:#e8faf3;--yellow:#ffc558;--yellow-light:#fff8e8;--purple:#8b5cf6;--purple-light:#f3eeff;--border:#e5e8eb;--radius:16px;--radius-sm:12px}
+body{font-family:'Noto Sans KR',-apple-system,sans-serif;background:var(--bg);color:var(--text-primary);line-height:1.6;-webkit-font-smoothing:antialiased}
+.progress{position:fixed;top:0;left:0;height:3px;background:var(--blue);z-index:9999;width:0%;transition:width .1s}
+.container{max-width:640px;margin:0 auto;padding:0 24px}
+.hero{min-height:100vh;display:flex;flex-direction:column;justify-content:center;padding:24px 0}
+.pill{display:inline-block;background:var(--blue-light);color:var(--blue);padding:6px 14px;border-radius:100px;font-size:13px;font-weight:700;margin-bottom:20px}
+h1{font-size:38px;font-weight:900;line-height:1.25;margin-bottom:16px;letter-spacing:-.5px}
+.subtitle{font-size:16px;color:var(--text-secondary);font-weight:500;line-height:1.7}
+.scroll-hint{margin-top:80px;font-size:14px;color:var(--text-tertiary);text-align:center}
+.section{margin-top:100vh}
+.section:first-of-type{margin-top:120px}
+.section-num{color:var(--blue);font-size:14px;font-weight:700;margin-bottom:12px}
+.section-title{font-size:26px;font-weight:900;line-height:1.3;margin-bottom:28px;letter-spacing:-.4px}
+.card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:28px 24px;margin-bottom:28px;box-shadow:0 1px 2px rgba(0,0,0,.02)}
+.card p{font-size:15px;line-height:1.75;color:var(--text-secondary)}
+.card p+p{margin-top:12px}
+.cg{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:28px}
+.cg>div{padding:24px 20px;border-radius:var(--radius)}
+.cg-a{background:var(--blue-bg)}
+.cg-b{background:var(--purple-light)}
+.cg-emoji{font-size:28px;margin-bottom:12px}
+.cg-title{font-size:16px;font-weight:800;margin-bottom:8px}
+.cg-desc{font-size:14px;color:var(--text-secondary);line-height:1.6}
+.hl{background:var(--text-primary);color:var(--white);padding:28px 24px;border-radius:var(--radius);margin-bottom:28px}
+.hl .pill{background:var(--blue);color:var(--white);margin-bottom:14px}
+.hl-text{font-size:17px;line-height:1.7;font-weight:500}
+.ex{background:var(--yellow-light);border-left:4px solid var(--yellow);padding:24px 20px;border-radius:var(--radius-sm);margin-bottom:28px}
+.ex-label{display:inline-block;background:var(--yellow);color:var(--text-primary);padding:4px 10px;border-radius:100px;font-size:12px;font-weight:700;margin-bottom:12px}
+.ex-text{font-size:15px;line-height:1.7;color:var(--text-secondary)}
+.q{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:28px 24px;margin:60px 0}
+.q .pill{margin-bottom:16px}
+.q-question{font-size:17px;font-weight:700;line-height:1.5;margin-bottom:20px}
+.q-option{display:block;width:100%;text-align:left;background:var(--white);border:1px solid var(--border);border-radius:var(--radius-sm);padding:16px 18px;margin-bottom:10px;font-size:14px;font-weight:500;cursor:pointer;transition:all .2s;font-family:inherit;color:var(--text-primary)}
+.q-option:hover:not(:disabled){border-color:var(--blue)}
+.q-option:disabled{cursor:not-allowed}
+.q-option.correct{background:var(--green-light);border-color:var(--green);color:#00865a}
+.q-option.wrong{background:var(--red-light);border-color:var(--red);color:#c4303c}
+.q-feedback{margin-top:16px;padding:14px 16px;border-radius:var(--radius-sm);font-size:14px;line-height:1.6;display:none}
+.q-feedback.show{display:block}
+.q-feedback.correct{background:var(--green-light);color:#00865a}
+.q-feedback.wrong{background:var(--red-light);color:#c4303c}
+.ig{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:28px}
+.ig>div{background:var(--white);border:1px solid var(--border);border-radius:var(--radius-sm);padding:20px 14px;text-align:center;transition:transform .2s}
+.ig>div:hover{transform:translateY(-2px)}
+.ig-emoji{font-size:28px;margin-bottom:10px}
+.ig-title{font-size:14px;font-weight:700;margin-bottom:6px}
+.ig-desc{font-size:12px;color:var(--text-secondary);line-height:1.5}
+.score-banner{background:var(--blue);color:#fff;padding:40px 24px;border-radius:var(--radius);text-align:center;margin:80px 0;display:none}
+.score-banner.show{display:block}
+.score-banner h2{font-size:18px;font-weight:700;margin-bottom:12px;opacity:.9}
+.score-num{font-size:56px;font-weight:900;margin-bottom:12px;letter-spacing:-1px}
+.score-msg{font-size:15px;font-weight:500;opacity:.95}
+.footer{margin:80px 0 40px;padding:40px 24px;text-align:center;border-top:1px solid var(--border)}
+.footer-quote{font-size:17px;font-weight:700;line-height:1.6;margin-bottom:10px}
+.footer-source{font-size:13px;color:var(--text-tertiary)}
+.reveal{opacity:0;transform:translateY(20px);transition:all .8s cubic-bezier(.16,1,.3,1)}
+.reveal.show{opacity:1;transform:translateY(0)}
+.nav-btns{display:flex;gap:10px;margin:40px 0 60px;justify-content:center;flex-wrap:wrap}
+.nav-btn{padding:12px 20px;background:#fff;border:1px solid var(--border);border-radius:100px;color:var(--text-primary);text-decoration:none;font-size:13px;font-weight:700;transition:all .2s}
+.nav-btn:hover{border-color:var(--blue);color:var(--blue)}
+.nav-btn.primary{background:var(--blue);color:#fff;border-color:var(--blue)}
+@media (max-width:600px){h1{font-size:28px}.section-title{font-size:22px}.cg{grid-template-columns:1fr}.ig{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="progress"></div>
+
+<div class="container">
+  <div class="hero">
+    <span class="pill reveal show">논문 03 · 해군 분야</span>
+    <h1 class="reveal show">두 명의 운전사가<br>번개를 함께 잡는다</h1>
+    <p class="subtitle reveal show">
+      Zheng 외 (2022). 해군 함정의 펄스 전력 부하를 SMES + 배터리 하이브리드 저장 장치(HESS)와
+      이중 MPC(D-MPC)로 처리. 우리는 SMES 대신 슈퍼커패시터를 쓴다.
+    </p>
+    <div class="scroll-hint reveal show">스크롤해서 시작하기 ↓</div>
+  </div>
+
+  <div class="section">
+    <div class="section-num reveal">01</div>
+    <h2 class="section-title reveal">펄스 전력 부하란 무엇인가</h2>
+
+    <div class="card reveal">
+      <p>해군 함정에는 평범한 배에는 없는 장비가 있다. 레이저 무기, 전자기 추진, 강력한 레이더.</p>
+      <p>이 장비들은 켤 때 엄청난 전력을 순간적으로 빨아들인다. 마치 번개처럼. 이걸 펄스 전력 부하(Pulsed Power Loads, PPLs)라고 부른다.</p>
+      <p>배터리 하나만으로는 못 잡는다. 배터리는 화학반응이라 응답이 너무 느리다.</p>
+    </div>
+
+    <div class="q reveal">
+      <span class="pill">퀴즈 1</span>
+      <div class="q-question">펄스 전력 부하(PPL)의 특징은?</div>
+      <button class="q-option" data-correct="false">오랫동안 천천히 전력을 쓴다</button>
+      <button class="q-option" data-correct="true">아주 짧은 시간에 매우 큰 전력을 쓴다</button>
+      <button class="q-option" data-correct="false">전력을 거의 안 쓴다</button>
+      <div class="q-feedback">펄스 부하는 짧은 시간 안에 매우 큰 전력을 요구한다. 배터리만으로는 응답 속도가 부족해서 빠른 저장 장치가 추가로 필요하다.</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-num reveal">02</div>
+    <h2 class="section-title reveal">해법 — HESS, 두 친구의 협력</h2>
+
+    <div class="card reveal">
+      <p>한 명이 못 잡는 일은 두 명이 협력하면 잡을 수 있다. 이게 HESS(Hybrid Energy Storage System)의 발상이다.</p>
+    </div>
+
+    <div class="cg reveal">
+      <div class="cg-a">
+        <div class="cg-emoji">🔋</div>
+        <div class="cg-title">배터리 — 지구력</div>
+        <div class="cg-desc">에너지 밀도가 높다. 오래 일할 수 있다. 하지만 응답이 느리다.</div>
+      </div>
+      <div class="cg-b">
+        <div class="cg-emoji">⚡</div>
+        <div class="cg-title">SMES — 스피드</div>
+        <div class="cg-desc">초전도 자기 에너지 저장. 응답이 번개처럼 빠르다. 하지만 에너지가 적다.</div>
+      </div>
+    </div>
+
+    <div class="ex reveal">
+      <span class="ex-label">비유</span>
+      <p class="ex-text">축구할 때 골을 넣으려면 두 종류의 힘이 필요하다. 오래 뛰는 지구력과 짧고 강한 순간 폭발력. HESS는 이 두 가지를 합쳐놓은 것이다.</p>
+    </div>
+
+    <div class="q reveal">
+      <span class="pill">퀴즈 2</span>
+      <div class="q-question">HESS에서 배터리와 SMES의 역할 분담은?</div>
+      <button class="q-option" data-correct="true">배터리는 느린 변화, SMES는 빠른 변화</button>
+      <button class="q-option" data-correct="false">배터리는 빠른 변화, SMES는 느린 변화</button>
+      <button class="q-option" data-correct="false">둘 다 같은 역할</button>
+      <div class="q-feedback">에너지 밀도가 높은 배터리는 저주파(느린 변화)를, 출력 밀도가 높은 SMES는 고주파(빠른 변화)를 담당한다.</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-num reveal">03</div>
+    <h2 class="section-title reveal">D-MPC — 이중 모델 예측 제어</h2>
+
+    <div class="card reveal">
+      <p>이 논문의 진짜 핵심은 두 친구를 어떻게 협력시키는가다. 답은 D-MPC(Dual MPC). MPC가 두 개 있는 구조다.</p>
+      <p><strong>상위 MPC</strong>는 배터리한테 "저주파는 네가 맡아"라고 명령한다.</p>
+      <p><strong>하위 MPC</strong>는 SMES한테 "고주파 스파이크는 네가 즉시 흡수해"라고 명령한다.</p>
+    </div>
+
+    <div class="card reveal">
+      <p>여기에 ALPF(적응형 저대역 통과 필터)가 더해져서 "어떤 주파수를 누가 맡을지"를 자동으로 결정한다.</p>
+    </div>
+
+    <div class="q reveal">
+      <span class="pill">퀴즈 3</span>
+      <div class="q-question">D-MPC에서 MPC가 두 개인 이유는?</div>
+      <button class="q-option" data-correct="false">계산 결과의 평균을 내기 위해</button>
+      <button class="q-option" data-correct="true">서로 다른 시간 스케일(저주파/고주파)을 각각 담당하기 위해</button>
+      <button class="q-option" data-correct="false">한 MPC가 고장 났을 때를 대비해서</button>
+      <div class="q-feedback">D-MPC의 두 MPC는 서로 다른 시간 스케일을 다룬다. 상위는 저주파를 배터리에, 하위는 고주파를 SMES에 할당한다. 이중 백업이 아니라 역할 분담이다.</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-num reveal">04</div>
+    <h2 class="section-title reveal">선박과의 연결고리</h2>
+
+    <div class="card reveal">
+      <p>해군 함정의 무기 펄스와 우리 선박의 파도 펄스는 닮았다.</p>
+      <p>거친 해상에서 프로펠러가 잠시 수면 위로 나왔다가 다시 잠긴다(In-and-out of water effect). 이때 모터 입장에서는 전력 부하가 갑자기 사라졌다가 갑자기 다시 생긴다.</p>
+      <p>이게 해군 무기의 펄스 부하와 수학적으로 거의 같은 현상이다.</p>
+    </div>
+
+    <div class="ex reveal">
+      <span class="ex-label">등가성</span>
+      <p class="ex-text">서로 다른 산업이지만 문제는 같다. "짧고 강한 전력 펄스를 어떻게 흡수하는가." 이 논문의 해법(HESS + D-MPC)을 그대로 선박에 가져올 수 있는 근거다.</p>
+    </div>
+
+    <div class="q reveal">
+      <span class="pill">퀴즈 4</span>
+      <div class="q-question">해군 함정의 펄스 부하와 가장 비슷한 선박 현상은?</div>
+      <button class="q-option" data-correct="false">디젤 발전기 시동</button>
+      <button class="q-option" data-correct="true">거친 해상에서 프로펠러의 수면 노출 현상</button>
+      <button class="q-option" data-correct="false">정박 중 보일러 작동</button>
+      <div class="q-feedback">프로펠러가 물 밖에 나왔다가 다시 잠기면, 모터 부하가 짧은 시간에 급격히 변한다. 이 펄스성 전력 변동은 해군 무기 펄스와 수학적으로 등가다.</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-num reveal">05</div>
+    <h2 class="section-title reveal">왜 우리는 SMES를 안 쓸까</h2>
+
+    <div class="card reveal">
+      <p>SMES는 강력하지만 비싸다. 초전도체를 영하 수백 도로 유지해야 한다. 액체 헬륨이 필요하다.</p>
+      <p>선박에서는 비현실적이다. 그래서 우리는 SMES 대신 슈퍼커패시터(SC)를 쓴다.</p>
+      <p>SC는 SMES보다 출력은 낮지만, 훨씬 싸고 운영이 간단하다. 그리고 우리 선박 환경에는 충분히 빠르다.</p>
+    </div>
+
+    <div class="cg reveal">
+      <div class="cg-a">
+        <div class="cg-emoji">❄️</div>
+        <div class="cg-title">SMES (해군)</div>
+        <div class="cg-desc">극저온 유지 필요. 매우 빠르지만 비싸고 운영 부담이 크다.</div>
+      </div>
+      <div class="cg-b">
+        <div class="cg-emoji">⚡</div>
+        <div class="cg-title">SC (선박)</div>
+        <div class="cg-desc">상온 동작. 충분히 빠르고 저렴하다. 선박 환경에 적합.</div>
+      </div>
+    </div>
+
+    <div class="q reveal">
+      <span class="pill">퀴즈 5</span>
+      <div class="q-question">우리 졸업 논문에서 SMES 대신 슈퍼커패시터를 쓰는 이유는?</div>
+      <button class="q-option" data-correct="false">SMES가 더 느려서</button>
+      <button class="q-option" data-correct="true">SMES는 극저온 유지가 필요해서 선박에 비현실적이다</button>
+      <button class="q-option" data-correct="false">SC가 더 강력해서</button>
+      <div class="q-feedback">SMES는 초전도체 기반이라 액체 헬륨 같은 극저온 냉각이 필수다. 선박 운영 환경에서는 비용과 안전성이 부담이다. SC는 그보다 출력은 낮지만 상온 동작하고 충분히 빠르다.</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-num reveal">06</div>
+    <h2 class="section-title reveal">내가 가져갈 것</h2>
+
+    <div class="ig reveal">
+      <div>
+        <div class="ig-emoji">🏗</div>
+        <div class="ig-title">HESS 토폴로지</div>
+        <div class="ig-desc">두 친구 조합</div>
+      </div>
+      <div>
+        <div class="ig-emoji">📊</div>
+        <div class="ig-title">주파수 분배</div>
+        <div class="ig-desc">저주파=배터리, 고주파=SC</div>
+      </div>
+      <div>
+        <div class="ig-emoji">🎚</div>
+        <div class="ig-title">D-MPC 구조</div>
+        <div class="ig-desc">상위/하위 이중 제어</div>
+      </div>
+    </div>
+
+    <div class="card reveal">
+      <p><strong>1.</strong> HESS 토폴로지 자체를 그대로 가져온다. SMES만 SC로 바꾼다.</p>
+      <p><strong>2.</strong> "주파수 기반 역할 분담" 사상은 우리 시스템의 핵심이다.</p>
+      <p><strong>3.</strong> D-MPC의 이중 구조는 우리 2단계 제어 아키텍처에 영감을 준다.</p>
+    </div>
+
+    <div class="q reveal">
+      <span class="pill">퀴즈 6</span>
+      <div class="q-question">이 논문에서 우리가 가져가지 못하는 것은?</div>
+      <button class="q-option" data-correct="false">HESS 구조</button>
+      <button class="q-option" data-correct="false">주파수 기반 분배</button>
+      <button class="q-option" data-correct="true">파도 동기화 가변 시상수 로직</button>
+      <div class="q-feedback">이 논문은 무기 펄스만 다루었기 때문에 "해상 파도에 동기화된 시상수" 로직이 없다. 그 부분은 다른 논문(6번 APF, 7번 ALPF)에서 보충해야 한다.</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-num reveal">07</div>
+    <h2 class="section-title reveal">한계 — 파도를 모른다</h2>
+
+    <div class="card reveal">
+      <p>이 논문의 약점은 분명하다. 해군 무기 펄스에만 집중했다.</p>
+      <p>파도의 주기성, 해상 상태에 따른 부하 특성 변화는 다루지 않았다.</p>
+      <p>우리는 여기에 파도 모델(Pierson-Moskowitz)을 결합하고, APF + ALPF로 시상수를 동적으로 바꿔야 한다.</p>
+    </div>
+
+    <div class="hl reveal">
+      <span class="pill">우리가 보완할 것</span>
+      <p class="hl-text">
+        HESS 토폴로지와 주파수 분배 사상은 가져온다. 하지만 파도 주파수 인식과 동적 시상수 적응은 다른 논문들에서 가져와 결합한다.
+        이 논문은 "하드웨어 골격"을, 다른 논문들은 "지능"을 제공한다.
+      </p>
+    </div>
+
+    <div class="q reveal">
+      <span class="pill">퀴즈 7</span>
+      <div class="q-question">이 논문이 선박에 직접 적용되기 어려운 가장 큰 이유는?</div>
+      <button class="q-option" data-correct="false">SMES가 너무 느려서</button>
+      <button class="q-option" data-correct="true">파도와 같은 주기적 외란을 다루는 로직이 없어서</button>
+      <button class="q-option" data-correct="false">MPC가 너무 단순해서</button>
+      <div class="q-feedback">해군 함정은 무기 펄스에만 집중했다. 선박은 파도라는 주기적 외란이 추가로 있어서, 파도 주파수에 동기화된 시상수 로직이 필요하다.</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-num reveal">08</div>
+    <h2 class="section-title reveal">정리</h2>
+
+    <div class="cg reveal">
+      <div class="cg-a">
+        <div class="cg-emoji">✅</div>
+        <div class="cg-title">가져갈 것</div>
+        <div class="cg-desc">HESS 토폴로지, 주파수 기반 역할 분담, D-MPC 이중 구조</div>
+      </div>
+      <div class="cg-b">
+        <div class="cg-emoji">🔧</div>
+        <div class="cg-title">바꿀 것</div>
+        <div class="cg-desc">SMES → SC, 무기 펄스 가정 → 파도 펄스 가정</div>
+      </div>
+    </div>
+
+    <div class="q reveal">
+      <span class="pill">퀴즈 8</span>
+      <div class="q-question">D-MPC의 상위 MPC는 무엇을 제어할까?</div>
+      <button class="q-option" data-correct="true">배터리의 기준 전류 (저주파 변동 할당)</button>
+      <button class="q-option" data-correct="false">SC의 전류 (고주파 스파이크)</button>
+      <button class="q-option" data-correct="false">전압 강하 보상</button>
+      <div class="q-feedback">상위 MPC는 배터리의 기준 전류를 생성해 저주파 변동을 할당하고, 하위 MPC가 전압 제어와 SMES(또는 SC) 전류 제어로 고주파를 즉각 흡수한다.</div>
+    </div>
+
+    <div class="q reveal">
+      <span class="pill">퀴즈 9</span>
+      <div class="q-question">ALPF(적응형 저대역 통과 필터)의 역할은?</div>
+      <button class="q-option" data-correct="false">전압을 일정하게 유지</button>
+      <button class="q-option" data-correct="true">저주파/고주파 경계를 상황에 맞게 자동 조절</button>
+      <button class="q-option" data-correct="false">배터리를 충전</button>
+      <div class="q-feedback">ALPF는 차단 주파수를 적응적으로 바꿔서, "어떤 주파수를 누가 맡을지"의 경계선을 환경에 맞게 자동으로 조정한다.</div>
+    </div>
+  </div>
+
+  <div class="score-banner" id="scoreBanner">
+    <h2>퀴즈 결과</h2>
+    <div class="score-num">0/9</div>
+    <div class="score-msg"></div>
+  </div>
+
+  <div class="footer">
+    <div class="footer-quote">"한 명이 못 잡는 일을 두 명이 잡는다. 주파수로 일을 나눈다."</div>
+    <div class="footer-source">Zheng et al., 2022 · Dual MPC HESS</div>
+  </div>
+
+  <div class="nav-btns">
+    <a href="02_Chen_2023_AMPC선박EMS.html" class="nav-btn">← 이전</a>
+    <a href="00_index.html" class="nav-btn">목록</a>
+    <a href="04_Maghfiroh_2024_EV_PSO.html" class="nav-btn primary">다음 →</a>
+  </div>
+</div>
+
+<script>
+const progress=document.querySelector('.progress');
+window.addEventListener('scroll',()=>{const h=document.documentElement.scrollHeight-window.innerHeight;progress.style.width=((window.scrollY/h)*100)+'%'});
+const obs=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)e.target.classList.add('show')}),{rootMargin:'0px 0px -60px 0px'});
+document.querySelectorAll('.reveal').forEach(el=>obs.observe(el));
+let score=0,answered=0;const total=document.querySelectorAll('.q').length;
+document.querySelectorAll('.q').forEach(q=>{const opts=q.querySelectorAll('.q-option');const fb=q.querySelector('.q-feedback');opts.forEach(o=>{o.addEventListener('click',()=>{if(q.dataset.done)return;q.dataset.done='1';const right=o.dataset.correct==='true';o.classList.add(right?'correct':'wrong');if(!right)q.querySelector('[data-correct="true"]').classList.add('correct');opts.forEach(x=>x.disabled=true);fb.classList.add('show',right?'correct':'wrong');if(right)score++;answered++;if(answered===total){const b=document.getElementById('scoreBanner');b.querySelector('.score-num').textContent=score+'/'+total;const m=b.querySelector('.score-msg');if(score===total)m.textContent='완벽해요. 이 논문은 완전 정복!';else if(score>=total*0.75)m.textContent='잘했어요. 핵심은 다 잡았네요.';else if(score>=total*0.5)m.textContent='괜찮아요. 다시 한번 읽어볼까요?';else m.textContent='천천히 다시 읽어보면 좋아요.';b.classList.add('show')}})})});
+</script>
+</body>
+</html>

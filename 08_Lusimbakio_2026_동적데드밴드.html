@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>08 · Lusimbakio (2026) — 동적 데드밴드</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#f5f6f8;--white:#fff;--text-primary:#191f28;--text-secondary:#4e5968;--text-tertiary:#8b95a1;--blue:#3182f6;--blue-light:#e8f3ff;--blue-bg:#f2f7ff;--red:#f04452;--red-light:#fff0f0;--green:#00c471;--green-light:#e8faf3;--yellow:#ffc558;--yellow-light:#fff8e8;--purple:#8b5cf6;--purple-light:#f3eeff;--border:#e5e8eb;--radius:16px;--radius-sm:12px}
+body{font-family:'Noto Sans KR',-apple-system,sans-serif;background:var(--bg);color:var(--text-primary);line-height:1.6;-webkit-font-smoothing:antialiased}
+.progress{position:fixed;top:0;left:0;height:3px;background:var(--blue);z-index:9999;width:0%;transition:width .1s}
+.container{max-width:640px;margin:0 auto;padding:0 24px}
+.hero{min-height:100vh;display:flex;flex-direction:column;justify-content:center;padding:24px 0}
+.pill{display:inline-block;background:var(--blue-light);color:var(--blue);padding:6px 14px;border-radius:100px;font-size:13px;font-weight:700;margin-bottom:20px}
+.pill.new{background:#ffe8e8;color:#d63030}
+h1{font-size:38px;font-weight:900;line-height:1.25;margin-bottom:16px;letter-spacing:-.5px}
+.subtitle{font-size:16px;color:var(--text-secondary);font-weight:500;line-height:1.7}
+.scroll-hint{margin-top:80px;font-size:14px;color:var(--text-tertiary);text-align:center}
+.section{margin-top:100vh}
+.section:first-of-type{margin-top:120px}
+.section-num{color:var(--blue);font-size:14px;font-weight:700;margin-bottom:12px}
+.section-title{font-size:26px;font-weight:900;line-height:1.3;margin-bottom:28px;letter-spacing:-.4px}
+.card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:28px 24px;margin-bottom:28px;box-shadow:0 1px 2px rgba(0,0,0,.02)}
+.card p{font-size:15px;line-height:1.75;color:var(--text-secondary)}
+.card p+p{margin-top:12px}
+.cg{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:28px}
+.cg>div{padding:24px 20px;border-radius:var(--radius)}
+.cg-a{background:var(--blue-bg)}
+.cg-b{background:var(--purple-light)}
+.cg-emoji{font-size:28px;margin-bottom:12px}
+.cg-title{font-size:16px;font-weight:800;margin-bottom:8px}
+.cg-desc{font-size:14px;color:var(--text-secondary);line-height:1.6}
+.hl{background:var(--text-primary);color:var(--white);padding:28px 24px;border-radius:var(--radius);margin-bottom:28px}
+.hl .pill{background:var(--blue);color:var(--white);margin-bottom:14px}
+.hl-text{font-size:17px;line-height:1.7;font-weight:500}
+.ex{background:var(--yellow-light);border-left:4px solid var(--yellow);padding:24px 20px;border-radius:var(--radius-sm);margin-bottom:28px}
+.ex-label{display:inline-block;background:var(--yellow);color:var(--text-primary);padding:4px 10px;border-radius:100px;font-size:12px;font-weight:700;margin-bottom:12px}
+.ex-text{font-size:15px;line-height:1.7;color:var(--text-secondary)}
+.q{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:28px 24px;margin:60px 0}
+.q .pill{margin-bottom:16px}
+.q-question{font-size:17px;font-weight:700;line-height:1.5;margin-bottom:20px}
+.q-option{display:block;width:100%;text-align:left;background:var(--white);border:1px solid var(--border);border-radius:var(--radius-sm);padding:16px 18px;margin-bottom:10px;font-size:14px;font-weight:500;cursor:pointer;transition:all .2s;font-family:inherit;color:var(--text-primary)}
+.q-option:hover:not(:disabled){border-color:var(--blue)}
+.q-option:disabled{cursor:not-allowed}
+.q-option.correct{background:var(--green-light);border-color:var(--green);color:#00865a}
+.q-option.wrong{background:var(--red-light);border-color:var(--red);color:#c4303c}
+.q-feedback{margin-top:16px;padding:14px 16px;border-radius:var(--radius-sm);font-size:14px;line-height:1.6;display:none}
+.q-feedback.show{display:block}
+.q-feedback.correct{background:var(--green-light);color:#00865a}
+.q-feedback.wrong{background:var(--red-light);color:#c4303c}
+.ig{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:28px}
+.ig>div{background:var(--white);border:1px solid var(--border);border-radius:var(--radius-sm);padding:20px 14px;text-align:center;transition:transform .2s}
+.ig>div:hover{transform:translateY(-2px)}
+.ig-emoji{font-size:28px;margin-bottom:10px}
+.ig-title{font-size:14px;font-weight:700;margin-bottom:6px}
+.ig-desc{font-size:12px;color:var(--text-secondary);line-height:1.5}
+.score-banner{background:var(--blue);color:#fff;padding:40px 24px;border-radius:var(--radius);text-align:center;margin:80px 0;display:none}
+.score-banner.show{display:block}
+.score-banner h2{font-size:18px;font-weight:700;margin-bottom:12px;opacity:.9}
+.score-num{font-size:56px;font-weight:900;margin-bottom:12px;letter-spacing:-1px}
+.score-msg{font-size:15px;font-weight:500;opacity:.95}
+.footer{margin:80px 0 40px;padding:40px 24px;text-align:center;border-top:1px solid var(--border)}
+.footer-quote{font-size:17px;font-weight:700;line-height:1.6;margin-bottom:10px}
+.footer-source{font-size:13px;color:var(--text-tertiary)}
+.reveal{opacity:0;transform:translateY(20px);transition:all .8s cubic-bezier(.16,1,.3,1)}
+.reveal.show{opacity:1;transform:translateY(0)}
+.nav-btns{display:flex;gap:10px;margin:40px 0 60px;justify-content:center;flex-wrap:wrap}
+.nav-btn{padding:12px 20px;background:#fff;border:1px solid var(--border);border-radius:100px;color:var(--text-primary);text-decoration:none;font-size:13px;font-weight:700;transition:all .2s}
+.nav-btn:hover{border-color:var(--blue);color:var(--blue)}
+.nav-btn.primary{background:var(--blue);color:#fff;border-color:var(--blue)}
+.viz{background:#f8f9fb;border:1px solid var(--border);border-radius:var(--radius-sm);padding:24px;font-family:'Courier New',monospace;font-size:14px;text-align:center;line-height:1.8;margin:14px 0;white-space:pre-line}
+.synthesis{background:linear-gradient(135deg,#e8f3ff,#f2f7ff);border:2px solid var(--blue);padding:32px 24px;border-radius:var(--radius);margin:30px 0}
+.synthesis h3{font-size:18px;font-weight:900;margin-bottom:18px;color:var(--blue)}
+.synthesis ul{list-style:none;padding:0}
+.synthesis li{padding:12px 0;border-bottom:1px solid rgba(49,130,246,.15);font-size:14px;line-height:1.6;color:var(--text-secondary)}
+.synthesis li:last-child{border-bottom:none}
+.synthesis li strong{color:var(--text-primary);display:block;margin-bottom:4px;font-size:15px}
+@media (max-width:600px){h1{font-size:28px}.section-title{font-size:22px}.cg{grid-template-columns:1fr}.ig{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="progress"></div>
+
+<div class="container">
+  <div class="hero">
+    <span class="pill new reveal show">논문 08 · 2026년 최신</span>
+    <h1 class="reveal show">계단을<br>매끄러운 미끄럼틀로</h1>
+    <p class="subtitle reveal show">
+      Lusimbakio 외 (2026). RoCoF 기반 동적 데드밴드와 적응형 드룹 게인 조절.
+      중간 보고서의 가장 큰 약점인 "계단형 궤적"을 완벽히 해결.
+    </p>
+    <div class="scroll-hint reveal show">스크롤해서 시작하기 ↓</div>
+  </div>
+
+  <div class="section">
+    <div class="section-num reveal">01</div>
+    <h2 class="section-title reveal">중간 보고서의 약점</h2>
+
+    <div class="card reveal">
+      <p>중간 보고서에서 우리는 이중 데드밴드를 썼다. DB1 = 390kW, DB2 = 100kW. 둘 다 고정.</p>
+      <p>이 데드밴드 안에서는 출력이 안 바뀐다. 데드밴드를 넘어가는 순간 출력이 갑자기 바뀐다. 계단처럼 도약한다.</p>
+      <p>주기관 조속기(Governor)가 이 계단을 보고 미세하게 떨린다. 엔진 진동이 발생한다.</p>
+    </div>
+
+    <div class="viz reveal">출력
+━━━━┓
+━━━━┛━━━┓
+━━━━━━━━┛
+
+(계단처럼 끊기는 출력)</div>
+
+    <div class="q reveal">
+      <span class="pill">퀴즈 1</span>
+      <div class="q-question">고정 데드밴드가 만드는 출력의 모양은?</div>
+      <button class="q-option" data-correct="false">완벽한 직선</button>
+      <button class="q-option" data-correct="true">계단처럼 뚝뚝 끊기는 형태</button>
+      <button class="q-option" data-correct="false">매끄러운 곡선</button>
+      <div class="q-feedback">데드밴드 안쪽에서는 출력이 안 바뀌고, 임계값을 넘는 순간 갑자기 바뀐다. 그래서 계단(step-like) 형태가 된다.</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-num reveal">02</div>
+    <h2 class="section-title reveal">데드밴드의 딜레마</h2>
+
+    <div class="card reveal">
+      <p>데드밴드 폭을 좁히면 어떻게 될까. 작은 변동에도 자주 반응해서 스위칭이 너무 많다. 장비가 빨리 망가진다.</p>
+      <p>그럼 넓히면? 큰 변동이 와도 반응이 늦다. 엔진이 보호되지 못한다.</p>
+      <p>이 딜레마를 푸는 방법. <strong>상황에 따라 데드밴드를 자동으로 바꾸기</strong>.</p>
+    </div>
+
+    <div class="cg reveal">
+      <div class="cg-a">
+        <div class="cg-emoji">😖</div>
+        <div class="cg-title">너무 좁은 데드밴드</div>
+        <div class="cg-desc">사소한 변동에도 반응. 스위칭 과다. 장비 마모.</div>
+      </div>
+      <div class="cg-b">
+        <div class="cg-emoji">😴</div>
+        <div class="cg-title">너무 넓은 데드밴드</div>
+        <div class="cg-desc">큰 변동에 반응이 늦다. 엔진 보호 실패.</div>
+      </div>
+    </div>
+
+    <div class="q reveal">
+      <span class="pill">퀴즈 2</span>
+      <div class="q-question">데드밴드 폭 선택의 트레이드오프는?</div>
+      <button class="q-option" data-correct="false">좁을수록 무조건 좋다</button>
+      <button class="q-option" data-correct="true">좁으면 스위칭 과다, 넓으면 반응 지연</button>
+      <button class="q-option" data-correct="false">데드밴드는 관계없다</button>
+      <div class="q-feedback">데드밴드 폭은 안정성과 반응성 사이의 트레이드오프다. 한 값으로 두 마리 토끼를 잡을 수 없으니, 상황에 따라 동적으로 바꿔야 한다.</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-num reveal">03</div>
+    <h2 class="section-title reveal">RoCoF — 변화의 빠르기</h2>
+
+    <div class="card reveal">
+      <p>이 논문의 핵심 측정값은 RoCoF(Rate-of-Change-of-Frequency)다. 직역하면 "주파수 변화율".</p>
+      <p>주파수가 얼마나 빠르게 떨어지고 있는가를 실시간으로 본다. 큰 RoCoF는 위급한 상황을 의미한다.</p>
+      <p>선박에 적용하면? 주파수 대신 <strong>부하 변화율(dP/dt)</strong>을 본다. 부하가 얼마나 빨리 바뀌는가.</p>
+    </div>
+
+    <div class="ex reveal">
+      <span class="ex-label">선박 매핑</span>
+      <p class="ex-text">dP_shaft/dt와 dP_load/dt를 계산한다. 거친 파도 또는 슬러스터 기동 시 이 값이 폭증한다. 시스템은 이걸 위급 신호로 인식한다.</p>
+    </div>
+
+    <div class="q reveal">
+      <span class="pill">퀴즈 3</span>
+      <div class="q-question">RoCoF의 의미는?</div>
+      <button class="q-option" data-correct="false">주파수의 절대값</button>
+      <button class="q-option" data-correct="true">주파수의 시간 변화율 (얼마나 빨리 바뀌는가)</button>
+      <button class="q-option" data-correct="false">주파수의 평균</button>
+      <div class="q-feedback">RoCoF = df/dt. 주파수가 얼마나 빠르게 변하는지를 본다. 큰 RoCoF는 시스템에 큰 외란이 발생했다는 신호다.</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-num reveal">04</div>
+    <h2 class="section-title reveal">동적 데드밴드 — 자동 조절</h2>
+
+    <div class="card reveal">
+      <p>이 논문의 해법은 단순하면서 강력하다.</p>
+      <p>RoCoF가 크다 → 위급 상황 → 데드밴드 폭을 즉시 <strong>축소</strong>. 빠르게 반응한다.</p>
+      <p>RoCoF가 작다 → 평화로움 → 데드밴드 폭을 <strong>확장</strong>. 불필요한 스위칭 억제.</p>
+    </div>
+
+    <div class="ig reveal">
+      <div>
+        <div class="ig-emoji">🚨</div>
+        <div class="ig-title">위급</div>
+        <div class="ig-desc">RoCoF 大 → 데드밴드 좁힘 → 빠른 반응</div>
+      </div>
+      <div>
+        <div class="ig-emoji">😌</div>
+        <div class="ig-title">평화</div>
+        <div class="ig-desc">RoCoF 小 → 데드밴드 넓힘 → 안정성</div>
+      </div>
+      <div>
+        <div class="ig-emoji">⚡</div>
+        <div class="ig-title">결과</div>
+        <div class="ig-desc">계단 → 매끄러운 곡선</div>
+      </div>
+    </div>
+
+    <div class="viz reveal">출력 (동적 데드밴드 적용)
+       ╱
+      ╱
+     ╱
+    ╱
+
+(매끄럽게 이어지는 출력)</div>
+
+    <div class="q reveal">
+      <span class="pill">퀴즈 4</span>
+      <div class="q-question">RoCoF가 클 때 동적 데드밴드의 동작은?</div>
+      <button class="q-option" data-correct="false">데드밴드 폭을 늘려서 보수적으로 대응</button>
+      <button class="q-option" data-correct="true">데드밴드 폭을 줄여서 즉시 반응</button>
+      <button class="q-option" data-correct="false">시스템을 정지</button>
+      <div class="q-feedback">위급 상황에서는 빠른 반응이 우선이다. 데드밴드를 좁혀서 작은 변동도 즉시 잡는다.</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-num reveal">05</div>
+    <h2 class="section-title reveal">적응형 드룹 게인</h2>
+
+    <div class="card reveal">
+      <p>이 논문은 데드밴드만 바꾸지 않는다. 드룹 게인(droop gain)도 같이 조절한다.</p>
+      <p>드룹 게인은 "주파수가 얼마 떨어지면 얼마나 강하게 반응할지"를 정하는 기울기다.</p>
+      <p>위급할수록 게인을 크게, 평화로울수록 게인을 작게. 데드밴드 + 드룹 게인의 이중 조절이다.</p>
+    </div>
+
+    <div class="cg reveal">
+      <div class="cg-a">
+        <div class="cg-emoji">📏</div>
+        <div class="cg-title">데드밴드 조절</div>
+        <div class="cg-desc">언제부터 반응할지를 결정.</div>
+      </div>
+      <div class="cg-b">
+        <div class="cg-emoji">⚡</div>
+        <div class="cg-title">드룹 게인 조절</div>
+        <div class="cg-desc">반응의 강도를 결정.</div>
+      </div>
+    </div>
+
+    <div class="q reveal">
+      <span class="pill">퀴즈 5</span>
+      <div class="q-question">동적 데드밴드와 적응형 드룹 게인의 차이는?</div>
+      <button class="q-option" data-correct="false">완전히 같은 개념이다</button>
+      <button class="q-option" data-correct="true">데드밴드는 반응 시작점, 드룹 게인은 반응 강도</button>
+      <button class="q-option" data-correct="false">데드밴드는 충전, 드룹은 방전</button>
+      <div class="q-feedback">데드밴드는 "언제 반응을 시작할까", 드룹 게인은 "얼마나 강하게 반응할까"를 정한다. 두 변수를 함께 조절해야 진짜 적응형이 된다.</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-num reveal">06</div>
+    <h2 class="section-title reveal">선박에 어떻게 적용하는가</h2>
+
+    <div class="card reveal">
+      <p>중간 보고서의 우리 시스템.</p>
+      <p>DB1 = 390kW (고정), DB2 = 100kW (고정)</p>
+      <p>새로운 시스템.</p>
+      <p>DB1(t) = f(dP_shaft/dt, dP_load/dt)</p>
+      <p>DB2(t) = f(dP_shaft/dt, dP_load/dt)</p>
+      <p>부하 변화율을 실시간으로 계산해서 데드밴드 두 값 모두 동적으로 조절한다.</p>
+    </div>
+
+    <div class="hl reveal">
+      <span class="pill">치환의 의미</span>
+      <p class="hl-text">
+        중간 보고서에서 가장 비판받았던 "계단형 거동(step-like behavior)"이 사라진다.
+        엔진 출력이 매끄러운 곡선으로 따라간다. 조속기 진동도 없어진다.
+      </p>
+    </div>
+
+    <div class="q reveal">
+      <span class="pill">퀴즈 6</span>
+      <div class="q-question">선박 시스템에 RoCoF 대신 사용할 변수는?</div>
+      <button class="q-option" data-correct="false">선박의 속도</button>
+      <button class="q-option" data-correct="true">부하 변화율 (dP_shaft/dt, dP_load/dt)</button>
+      <button class="q-option" data-correct="false">파도 높이</button>
+      <div class="q-feedback">선박은 주파수 변동보다 부하 변동이 직접적이다. dP/dt를 계산해서 거친 파도/평온한 파도를 구분한다.</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-num reveal">07</div>
+    <h2 class="section-title reveal">2026년 논문이라는 가치</h2>
+
+    <div class="card reveal">
+      <p>이 논문은 2026년에 발표된 최신 연구다.</p>
+      <p>졸업 논문에서 "최신 연구 동향을 반영하고 있다"는 점은 큰 강점이다. 트렌드 추종이 아니라, 가장 최근에 검증된 기법을 가져온다.</p>
+      <p>심사 위원이 보기에도 "2년 안에 발표된 최신 기법을 적용했다"는 게 학술적 가치를 높인다.</p>
+    </div>
+
+    <div class="q reveal">
+      <span class="pill">퀴즈 7</span>
+      <div class="q-question">졸업 논문에서 2026년 논문을 인용하는 가치는?</div>
+      <button class="q-option" data-correct="false">단순히 새 논문이라서</button>
+      <button class="q-option" data-correct="true">최신 연구 동향을 반영했다는 학술적 증명</button>
+      <button class="q-option" data-correct="false">아무 가치 없다</button>
+      <div class="q-feedback">최근 논문을 잘 인용하는 것은 연구자가 현재 학계 동향을 따라가고 있다는 증거다. 졸업 논문 심사에서 좋은 인상을 준다.</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-num reveal">08</div>
+    <h2 class="section-title reveal">8편 논문의 종합 융합</h2>
+
+    <div class="card reveal">
+      <p>이제 8편 모두 봤다. 어떻게 조합할까. 졸업 논문의 최종 아키텍처를 정리한다.</p>
+    </div>
+
+    <div class="synthesis reveal">
+      <h3>차세대 선박 HESS 아키텍처</h3>
+      <ul>
+        <li>
+          <strong>하드웨어 — 능동형 HESS</strong>
+          논문 3, 5에서 HESS 토폴로지 + 논문 7에서 m-TAB 컨버터
+        </li>
+        <li>
+          <strong>상위 제어기 — 지능형 LPF + 동적 데드밴드</strong>
+          시상수 가변: 논문 6(APF) + 논문 7(ALPF) 융합<br>
+          동적 데드밴드: 논문 8 (RoCoF 기반)<br>
+          비대칭 자가치유: 논문 6
+        </li>
+        <li>
+          <strong>하위 제어기 — 정밀 분배</strong>
+          1순위: 논문 2, 3의 MPC<br>
+          2순위 백업: 논문 5의 퍼지 로직
+        </li>
+        <li>
+          <strong>학술적 정당성</strong>
+          논문 4 (EV ↔ 선박 수학적 등가성)
+        </li>
+        <li>
+          <strong>기본 골격</strong>
+          논문 1 (선박 계층적 제어 구조)
+        </li>
+      </ul>
+    </div>
+
+    <div class="q reveal">
+      <span class="pill">퀴즈 8</span>
+      <div class="q-question">우리 졸업 논문의 상위 제어기 시상수 가변에 결합되는 두 논문은?</div>
+      <button class="q-option" data-correct="false">논문 1과 2</button>
+      <button class="q-option" data-correct="true">논문 6(APF)과 7(ALPF)</button>
+      <button class="q-option" data-correct="false">논문 3과 8</button>
+      <div class="q-feedback">APF가 한계 근처 비선형 보호, ALPF가 일상 적응. 두 수식을 결합한 융합 방정식이 우리 졸업 논문의 핵심이다.</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-num reveal">09</div>
+    <h2 class="section-title reveal">내가 가져갈 것</h2>
+
+    <div class="card reveal">
+      <p><strong>1.</strong> RoCoF 기반 데드밴드 조절 로직 (선박에선 dP/dt 사용).</p>
+      <p><strong>2.</strong> 적응형 드룹 게인 (하위 제어기에서 활용).</p>
+      <p><strong>3.</strong> "계단 → 곡선" 변환 효과 (중간 보고서의 가장 큰 약점 해결).</p>
+      <p><strong>4.</strong> 2026년 최신 논문이라는 학술적 가치.</p>
+    </div>
+
+    <div class="q reveal">
+      <span class="pill">퀴즈 9</span>
+      <div class="q-question">이 논문이 중간 보고서의 어느 약점을 가장 직접적으로 해결하는가?</div>
+      <button class="q-option" data-correct="false">SOC 포화</button>
+      <button class="q-option" data-correct="true">고정 데드밴드에 의한 계단형 거동</button>
+      <button class="q-option" data-correct="false">배터리 용량 부족</button>
+      <div class="q-feedback">중간 보고서의 세 가지 약점(SOC 포화, 계단형 거동, 충방전 비대칭) 중 "계단형 거동"이 이 논문의 정확한 해결 대상이다. SOC 포화는 논문 6(APF)이 담당.</div>
+    </div>
+
+    <div class="q reveal">
+      <span class="pill">퀴즈 10</span>
+      <div class="q-question">8편 논문의 핵심을 한 줄로 요약하면?</div>
+      <button class="q-option" data-correct="false">선박에는 큰 배터리가 필요하다</button>
+      <button class="q-option" data-correct="true">이종 산업의 적응형 제어를 선박에 이식해 강건성을 극대화한다</button>
+      <button class="q-option" data-correct="false">디젤 발전기를 없애야 한다</button>
+      <div class="q-feedback">선박 안에서 답을 찾지 못한 문제를 EV, 철도, 태양광, DC 그리드, 전력망의 적응형 제어 기법으로 풀어내는 것이 우리 졸업 논문의 핵심 주제다.</div>
+    </div>
+  </div>
+
+  <div class="score-banner" id="scoreBanner">
+    <h2>퀴즈 결과</h2>
+    <div class="score-num">0/10</div>
+    <div class="score-msg"></div>
+  </div>
+
+  <div class="footer">
+    <div class="footer-quote">"계단을 미끄럼틀로. 8편의 융합으로 거친 바다를 이긴다."</div>
+    <div class="footer-source">Lusimbakio et al., 2026 · Dynamic Deadband + Adaptive Droop</div>
+  </div>
+
+  <div class="nav-btns">
+    <a href="07_Mitra_2023_DC마이크로그리드ALPF.html" class="nav-btn">← 이전</a>
+    <a href="00_index.html" class="nav-btn primary">목록으로 돌아가기</a>
+  </div>
+</div>
+
+<script>
+const progress=document.querySelector('.progress');
+window.addEventListener('scroll',()=>{const h=document.documentElement.scrollHeight-window.innerHeight;progress.style.width=((window.scrollY/h)*100)+'%'});
+const obs=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)e.target.classList.add('show')}),{rootMargin:'0px 0px -60px 0px'});
+document.querySelectorAll('.reveal').forEach(el=>obs.observe(el));
+let score=0,answered=0;const total=document.querySelectorAll('.q').length;
+document.querySelectorAll('.q').forEach(q=>{const opts=q.querySelectorAll('.q-option');const fb=q.querySelector('.q-feedback');opts.forEach(o=>{o.addEventListener('click',()=>{if(q.dataset.done)return;q.dataset.done='1';const right=o.dataset.correct==='true';o.classList.add(right?'correct':'wrong');if(!right)q.querySelector('[data-correct="true"]').classList.add('correct');opts.forEach(x=>x.disabled=true);fb.classList.add('show',right?'correct':'wrong');if(right)score++;answered++;if(answered===total){const b=document.getElementById('scoreBanner');b.querySelector('.score-num').textContent=score+'/'+total;const m=b.querySelector('.score-msg');if(score===total)m.textContent='완벽해요. 8편 모두 정복!';else if(score>=total*0.75)m.textContent='잘했어요. 핵심은 다 잡았네요.';else if(score>=total*0.5)m.textContent='괜찮아요. 다시 한번 읽어볼까요?';else m.textContent='천천히 다시 읽어보면 좋아요.';b.classList.add('show')}})})});
+</script>
+</body>
+</html>

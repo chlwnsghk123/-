@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>차세대 선박 HESS - 참고 논문 학습 자료</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+:root {
+  --bg: #f5f6f8; --white: #ffffff;
+  --text-primary: #191f28; --text-secondary: #4e5968; --text-tertiary: #8b95a1;
+  --blue: #3182f6; --blue-light: #e8f3ff; --blue-bg: #f2f7ff;
+  --purple: #8b5cf6; --purple-light: #f3eeff;
+  --border: #e5e8eb;
+  --radius: 16px; --radius-sm: 12px;
+}
+body {
+  font-family: 'Noto Sans KR', -apple-system, sans-serif;
+  background: var(--bg); color: var(--text-primary);
+  line-height: 1.6; -webkit-font-smoothing: antialiased;
+}
+.progress {
+  position: fixed; top: 0; left: 0; height: 3px;
+  background: var(--blue); z-index: 9999; width: 0%; transition: width 0.1s;
+}
+.container { max-width: 640px; margin: 0 auto; padding: 0 24px; }
+.hero {
+  min-height: 100vh; display: flex; flex-direction: column;
+  justify-content: center; padding: 24px 0;
+}
+.pill {
+  display: inline-block; background: var(--blue-light);
+  color: var(--blue); padding: 6px 14px;
+  border-radius: 100px; font-size: 13px; font-weight: 700;
+  margin-bottom: 20px;
+}
+h1 {
+  font-size: 38px; font-weight: 900; line-height: 1.25;
+  margin-bottom: 16px; letter-spacing: -0.5px;
+}
+.subtitle {
+  font-size: 16px; color: var(--text-secondary);
+  font-weight: 500; line-height: 1.7;
+}
+.scroll-hint {
+  margin-top: 80px; font-size: 14px;
+  color: var(--text-tertiary); text-align: center;
+}
+.section { margin-top: 100vh; }
+.section:first-of-type { margin-top: 120px; }
+.section-num {
+  color: var(--blue); font-size: 14px; font-weight: 700;
+  margin-bottom: 12px;
+}
+.section-title {
+  font-size: 26px; font-weight: 900; line-height: 1.3;
+  margin-bottom: 28px; letter-spacing: -0.4px;
+}
+.card-link {
+  display: block; text-decoration: none; color: inherit;
+  background: var(--white); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 24px 22px;
+  margin-bottom: 14px; transition: all 0.2s;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+}
+.card-link:hover {
+  border-color: var(--blue); transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(49,130,246,0.12);
+}
+.card-top {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 12px;
+}
+.card-num {
+  width: 32px; height: 32px;
+  background: var(--blue-light); color: var(--blue);
+  border-radius: 100px; display: flex;
+  align-items: center; justify-content: center;
+  font-size: 14px; font-weight: 800;
+}
+.card-cat {
+  background: var(--bg); color: var(--text-secondary);
+  padding: 4px 10px; border-radius: 100px;
+  font-size: 12px; font-weight: 600;
+}
+.card-cat.ship { background: var(--blue-light); color: var(--blue); }
+.card-cat.other { background: var(--purple-light); color: var(--purple); }
+.card-cat.star { background: #fff8e8; color: #b87900; }
+.card-title {
+  font-size: 17px; font-weight: 800;
+  margin-bottom: 6px; line-height: 1.4;
+}
+.card-author {
+  font-size: 13px; color: var(--text-tertiary);
+  margin-bottom: 12px;
+}
+.card-desc {
+  font-size: 14px; color: var(--text-secondary);
+  line-height: 1.6;
+}
+.ig {
+  display: grid; grid-template-columns: 1fr 1fr 1fr;
+  gap: 12px; margin-bottom: 28px;
+}
+.ig > div {
+  background: var(--white); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 24px 16px;
+  text-align: center;
+}
+.ig-emoji { font-size: 28px; margin-bottom: 10px; }
+.ig-title { font-size: 14px; font-weight: 700; margin-bottom: 6px; }
+.ig-desc { font-size: 12px; color: var(--text-secondary); line-height: 1.5; }
+.hl {
+  background: var(--text-primary); color: var(--white);
+  padding: 28px 24px; border-radius: var(--radius);
+  margin-bottom: 28px;
+}
+.hl .pill { background: var(--blue); color: var(--white); margin-bottom: 14px; }
+.hl-text { font-size: 17px; line-height: 1.7; font-weight: 500; }
+.footer {
+  margin: 100px 0 80px; padding: 40px 24px; text-align: center;
+  border-top: 1px solid var(--border);
+}
+.footer-quote { font-size: 17px; font-weight: 700; line-height: 1.6; margin-bottom: 10px; }
+.footer-source { font-size: 13px; color: var(--text-tertiary); }
+.reveal {
+  opacity: 0; transform: translateY(20px);
+  transition: all 0.8s cubic-bezier(.16,1,.3,1);
+}
+.reveal.show { opacity: 1; transform: translateY(0); }
+@media (max-width: 600px) {
+  h1 { font-size: 28px; }
+  .section-title { font-size: 22px; }
+  .ig { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+<div class="progress"></div>
+
+<div class="container">
+  <div class="hero">
+    <span class="pill reveal show">졸업 논문 학습 자료</span>
+    <h1 class="reveal show">차세대 선박 HESS<br>참고 논문 8편</h1>
+    <p class="subtitle reveal show">
+      거친 파도에서도 살아남는 선박 전력 시스템을 만들기 위해 8편의 논문을 읽어야 한다.
+      선박 분야 3편, 이종 산업 5편. 각 논문은 인터랙티브 학습 자료로 정리되어 있다.
+    </p>
+    <div class="scroll-hint reveal show">스크롤해서 시작하기 ↓</div>
+  </div>
+
+  <div class="section">
+    <div class="section-num reveal">OVERVIEW</div>
+    <h2 class="section-title reveal">왜 이 8편인가</h2>
+
+    <div class="hl reveal">
+      <span class="pill">핵심 문제</span>
+      <p class="hl-text">
+        기존 선박 시스템은 τ=600초로 고정된 필터와 100/390kW 고정 데드밴드를 쓴다.
+        평온한 바다에서는 잘 돌지만, 거친 바다에서는 SOC가 한계까지 차서 시스템이 마비된다.
+        선박 분야 안에서는 답이 없다. 다른 산업에서 답을 찾아야 한다.
+      </p>
+    </div>
+
+    <div class="ig reveal">
+      <div>
+        <div class="ig-emoji">🚢</div>
+        <div class="ig-title">선박 3편</div>
+        <div class="ig-desc">기본 골격과 한계</div>
+      </div>
+      <div>
+        <div class="ig-emoji">🚗🚆☀️</div>
+        <div class="ig-title">이종 5편</div>
+        <div class="ig-desc">우리가 가져올 핵심 기술</div>
+      </div>
+      <div>
+        <div class="ig-emoji">🎯</div>
+        <div class="ig-title">융합 1개</div>
+        <div class="ig-desc">차세대 아키텍처</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-num reveal">PART 1</div>
+    <h2 class="section-title reveal">선박 분야 — 무엇이 부족한지 알아내기</h2>
+
+    <a href="01_Mutarraf_2022_선박마이크로그리드.html" class="card-link reveal">
+      <div class="card-top">
+        <div class="card-num">1</div>
+        <span class="card-cat ship">선박</span>
+      </div>
+      <div class="card-title">선박용 똑똑한 전력 관리 시스템</div>
+      <div class="card-author">Mutarraf 외 (2022)</div>
+      <div class="card-desc">디젤 엔진은 너무 약하게 돌리면 망가진다. 배터리가 도와줘서 엔진을 딱 알맞게 일하게 만드는 적응형 드룹 제어.</div>
+    </a>
+
+    <a href="02_Chen_2023_AMPC선박EMS.html" class="card-link reveal">
+      <div class="card-top">
+        <div class="card-num">2</div>
+        <span class="card-cat ship">선박</span>
+      </div>
+      <div class="card-title">선박의 미래 예측 운전법 (AMPC)</div>
+      <div class="card-author">Chen 외 (2023)</div>
+      <div class="card-desc">앞으로 일어날 일을 미리 계산해서 가장 좋은 선택을 하는 똑똑한 제어. 기존 대비 TCO 12.19% 절감.</div>
+    </a>
+
+    <a href="03_Zheng_2022_해군D-MPC.html" class="card-link reveal">
+      <div class="card-top">
+        <div class="card-num">3</div>
+        <span class="card-cat ship">해군</span>
+      </div>
+      <div class="card-title">해군 함정의 번개 같은 전력 흡수</div>
+      <div class="card-author">Zheng 외 (2022)</div>
+      <div class="card-desc">SMES + 배터리 = HESS. 두 친구가 협력해서 펄스 부하를 잡는다. 우리는 SMES 대신 슈퍼커패시터를 쓴다.</div>
+    </a>
+  </div>
+
+  <div class="section">
+    <div class="section-num reveal">PART 2</div>
+    <h2 class="section-title reveal">이종 산업 — 우리가 가져올 무기들</h2>
+
+    <a href="04_Maghfiroh_2024_EV_PSO.html" class="card-link reveal">
+      <div class="card-top">
+        <div class="card-num">4</div>
+        <span class="card-cat other">전기차</span>
+      </div>
+      <div class="card-title">전기차의 똑똑한 필터 자동 튜닝 (PSO)</div>
+      <div class="card-author">Maghfiroh 외 (2024)</div>
+      <div class="card-desc">새 떼처럼 정보 공유하며 최적의 필터를 찾는 PSO. 전기차의 경사저항 = 선박의 파랑저항이다.</div>
+    </a>
+
+    <a href="05_Liu_2022_철도퍼지로직.html" class="card-link reveal">
+      <div class="card-top">
+        <div class="card-num">5</div>
+        <span class="card-cat other">철도</span>
+      </div>
+      <div class="card-title">기차역의 슈퍼커패시터 비서</div>
+      <div class="card-author">Liu 외 (2022)</div>
+      <div class="card-desc">퍼지 로직이라는 똑똑한 비서가 SC를 조절한다. 회생제동 펄스 = 프로펠러 수면 노출.</div>
+    </a>
+
+    <a href="06_Wu_2024_태양광APF.html" class="card-link reveal">
+      <div class="card-top">
+        <div class="card-num">6</div>
+        <span class="card-cat star">★ 가장 중요</span>
+      </div>
+      <div class="card-title">자석 같은 가상의 힘 (APF 척력)</div>
+      <div class="card-author">Wu 외 (2024)</div>
+      <div class="card-desc">배터리가 한계에 가까워지면 자석처럼 밀어내는 마법 같은 비선형 수식. 졸업 논문의 핵심 무기.</div>
+    </a>
+
+    <a href="07_Mitra_2023_DC마이크로그리드ALPF.html" class="card-link reveal">
+      <div class="card-top">
+        <div class="card-num">7</div>
+        <span class="card-cat star">★ 핵심 수식</span>
+      </div>
+      <div class="card-title">SOC 보고 시상수 늘이기 (ALPF)</div>
+      <div class="card-author">Mitra 외 (2023)</div>
+      <div class="card-desc">τ = T_init + α(t)·ΔT. 배터리가 지치면 필터를 천천히. 우리가 직접 가져다 쓸 수식.</div>
+    </a>
+
+    <a href="08_Lusimbakio_2026_동적데드밴드.html" class="card-link reveal">
+      <div class="card-top">
+        <div class="card-num">8</div>
+        <span class="card-cat other">전력망</span>
+      </div>
+      <div class="card-title">계단을 매끄러운 미끄럼틀로</div>
+      <div class="card-author">Lusimbakio 외 (2026)</div>
+      <div class="card-desc">데드밴드를 상황에 따라 자동으로 조절. 2026년 최신 논문. 중간 보고서의 가장 큰 약점을 해결.</div>
+    </a>
+  </div>
+
+  <div class="section">
+    <div class="section-num reveal">HOW TO USE</div>
+    <h2 class="section-title reveal">사용법</h2>
+
+    <div class="hl reveal">
+      <span class="pill">학습 순서</span>
+      <p class="hl-text">
+        선박 분야 3편(1→2→3)을 먼저 읽고 한계를 이해한다.
+        그 다음 이종 산업 5편(4→5→6→7→8)을 읽으며 우리가 가져올 기술을 학습한다.
+        각 논문 페이지에는 비유 설명, 핵심 수식, takeaway, 그리고 10개 내외의 퀴즈가 있다.
+      </p>
+    </div>
+  </div>
+
+  <div class="footer reveal">
+    <div class="footer-quote">"선박 안에서 답이 없으면, 다른 산업에서 찾아온다."</div>
+    <div class="footer-source">2026-05-27 · 차세대 선박 HESS 연구 계획</div>
+  </div>
+</div>
+
+<script>
+const progress = document.querySelector('.progress');
+window.addEventListener('scroll', () => {
+  const h = document.documentElement.scrollHeight - window.innerHeight;
+  progress.style.width = ((window.scrollY / h) * 100) + '%';
+});
+const obs = new IntersectionObserver((es) => {
+  es.forEach(e => { if (e.isIntersecting) e.target.classList.add('show'); });
+}, { rootMargin: '0px 0px -60px 0px' });
+document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+</script>
+</body>
+</html>

@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>04 · Maghfiroh (2024) — EV PSO 필터 최적화</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#f5f6f8;--white:#fff;--text-primary:#191f28;--text-secondary:#4e5968;--text-tertiary:#8b95a1;--blue:#3182f6;--blue-light:#e8f3ff;--blue-bg:#f2f7ff;--red:#f04452;--red-light:#fff0f0;--green:#00c471;--green-light:#e8faf3;--yellow:#ffc558;--yellow-light:#fff8e8;--purple:#8b5cf6;--purple-light:#f3eeff;--border:#e5e8eb;--radius:16px;--radius-sm:12px}
+body{font-family:'Noto Sans KR',-apple-system,sans-serif;background:var(--bg);color:var(--text-primary);line-height:1.6;-webkit-font-smoothing:antialiased}
+.progress{position:fixed;top:0;left:0;height:3px;background:var(--blue);z-index:9999;width:0%;transition:width .1s}
+.container{max-width:640px;margin:0 auto;padding:0 24px}
+.hero{min-height:100vh;display:flex;flex-direction:column;justify-content:center;padding:24px 0}
+.pill{display:inline-block;background:var(--blue-light);color:var(--blue);padding:6px 14px;border-radius:100px;font-size:13px;font-weight:700;margin-bottom:20px}
+h1{font-size:38px;font-weight:900;line-height:1.25;margin-bottom:16px;letter-spacing:-.5px}
+.subtitle{font-size:16px;color:var(--text-secondary);font-weight:500;line-height:1.7}
+.scroll-hint{margin-top:80px;font-size:14px;color:var(--text-tertiary);text-align:center}
+.section{margin-top:100vh}
+.section:first-of-type{margin-top:120px}
+.section-num{color:var(--blue);font-size:14px;font-weight:700;margin-bottom:12px}
+.section-title{font-size:26px;font-weight:900;line-height:1.3;margin-bottom:28px;letter-spacing:-.4px}
+.card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:28px 24px;margin-bottom:28px;box-shadow:0 1px 2px rgba(0,0,0,.02)}
+.card p{font-size:15px;line-height:1.75;color:var(--text-secondary)}
+.card p+p{margin-top:12px}
+.cg{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:28px}
+.cg>div{padding:24px 20px;border-radius:var(--radius)}
+.cg-a{background:var(--blue-bg)}
+.cg-b{background:var(--purple-light)}
+.cg-emoji{font-size:28px;margin-bottom:12px}
+.cg-title{font-size:16px;font-weight:800;margin-bottom:8px}
+.cg-desc{font-size:14px;color:var(--text-secondary);line-height:1.6}
+.hl{background:var(--text-primary);color:var(--white);padding:28px 24px;border-radius:var(--radius);margin-bottom:28px}
+.hl .pill{background:var(--blue);color:var(--white);margin-bottom:14px}
+.hl-text{font-size:17px;line-height:1.7;font-weight:500}
+.ex{background:var(--yellow-light);border-left:4px solid var(--yellow);padding:24px 20px;border-radius:var(--radius-sm);margin-bottom:28px}
+.ex-label{display:inline-block;background:var(--yellow);color:var(--text-primary);padding:4px 10px;border-radius:100px;font-size:12px;font-weight:700;margin-bottom:12px}
+.ex-text{font-size:15px;line-height:1.7;color:var(--text-secondary)}
+.q{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:28px 24px;margin:60px 0}
+.q .pill{margin-bottom:16px}
+.q-question{font-size:17px;font-weight:700;line-height:1.5;margin-bottom:20px}
+.q-option{display:block;width:100%;text-align:left;background:var(--white);border:1px solid var(--border);border-radius:var(--radius-sm);padding:16px 18px;margin-bottom:10px;font-size:14px;font-weight:500;cursor:pointer;transition:all .2s;font-family:inherit;color:var(--text-primary)}
+.q-option:hover:not(:disabled){border-color:var(--blue)}
+.q-option:disabled{cursor:not-allowed}
+.q-option.correct{background:var(--green-light);border-color:var(--green);color:#00865a}
+.q-option.wrong{background:var(--red-light);border-color:var(--red);color:#c4303c}
+.q-feedback{margin-top:16px;padding:14px 16px;border-radius:var(--radius-sm);font-size:14px;line-height:1.6;display:none}
+.q-feedback.show{display:block}
+.q-feedback.correct{background:var(--green-light);color:#00865a}
+.q-feedback.wrong{background:var(--red-light);color:#c4303c}
+.ig{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:28px}
+.ig>div{background:var(--white);border:1px solid var(--border);border-radius:var(--radius-sm);padding:20px 14px;text-align:center;transition:transform .2s}
+.ig>div:hover{transform:translateY(-2px)}
+.ig-emoji{font-size:28px;margin-bottom:10px}
+.ig-title{font-size:14px;font-weight:700;margin-bottom:6px}
+.ig-desc{font-size:12px;color:var(--text-secondary);line-height:1.5}
+.score-banner{background:var(--blue);color:#fff;padding:40px 24px;border-radius:var(--radius);text-align:center;margin:80px 0;display:none}
+.score-banner.show{display:block}
+.score-banner h2{font-size:18px;font-weight:700;margin-bottom:12px;opacity:.9}
+.score-num{font-size:56px;font-weight:900;margin-bottom:12px;letter-spacing:-1px}
+.score-msg{font-size:15px;font-weight:500;opacity:.95}
+.footer{margin:80px 0 40px;padding:40px 24px;text-align:center;border-top:1px solid var(--border)}
+.footer-quote{font-size:17px;font-weight:700;line-height:1.6;margin-bottom:10px}
+.footer-source{font-size:13px;color:var(--text-tertiary)}
+.reveal{opacity:0;transform:translateY(20px);transition:all .8s cubic-bezier(.16,1,.3,1)}
+.reveal.show{opacity:1;transform:translateY(0)}
+.nav-btns{display:flex;gap:10px;margin:40px 0 60px;justify-content:center;flex-wrap:wrap}
+.nav-btn{padding:12px 20px;background:#fff;border:1px solid var(--border);border-radius:100px;color:var(--text-primary);text-decoration:none;font-size:13px;font-weight:700;transition:all .2s}
+.nav-btn:hover{border-color:var(--blue);color:var(--blue)}
+.nav-btn.primary{background:var(--blue);color:#fff;border-color:var(--blue)}
+.formula{background:#f8f9fb;border:1px solid var(--border);border-radius:var(--radius-sm);padding:20px;text-align:center;font-family:'Times New Roman',serif;font-size:18px;margin:14px 0}
+@media (max-width:600px){h1{font-size:28px}.section-title{font-size:22px}.cg{grid-template-columns:1fr}.ig{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="progress"></div>
+
+<div class="container">
+  <div class="hero">
+    <span class="pill reveal show">논문 04 · 전기차 분야</span>
+    <h1 class="reveal show">새 떼처럼 정보를 나누며<br>최적의 필터를 찾는다</h1>
+    <p class="subtitle reveal show">
+      Maghfiroh 외 (2024). 전기차 HESS에서 PSO(입자 군집 최적화)로 LPF를 동적 튜닝.
+      경사저항(F_grad)이 곧 선박의 파랑저항이다. 등가성의 결정적 증거.
+    </p>
+    <div class="scroll-hint reveal show">스크롤해서 시작하기 ↓</div>
+  </div>
+
+  <div class="section">
+    <div class="section-num reveal">01</div>
+    <h2 class="section-title reveal">왜 전기차 논문을 보는가</h2>
+
+    <div class="card reveal">
+      <p>의문이 들 수 있다. 전기차 논문을 왜 선박 졸업 논문에서 본단 말인가.</p>
+      <p>이유는 단 하나. <strong>두 시스템이 수학적으로 같은 문제를 풀고 있기 때문</strong>이다.</p>
+      <p>전기차는 도로의 굴곡과 싸우고, 선박은 파도와 싸운다. 둘 다 외부 환경에서 오는 예측 불가능한 변동을 흡수해야 한다.</p>
+    </div>
+
+    <div class="q reveal">
+      <span class="pill">퀴즈 1</span>
+      <div class="q-question">전기차와 선박이 공통적으로 풀어야 하는 문제는?</div>
+      <button class="q-option" data-correct="false">탑승자 안전 확보</button>
+      <button class="q-option" data-correct="true">외부 환경의 변동을 흡수하는 에너지 관리</button>
+      <button class="q-option" data-correct="false">고속 통신</button>
+      <div class="q-feedback">두 시스템 모두 외부 환경(도로 경사 / 파도)에서 오는 예측 불가능한 부하 변동을 에너지 저장 장치로 흡수해야 한다.</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-num reveal">02</div>
+    <h2 class="section-title reveal">전기차의 주행 저항 모델</h2>
+
+    <div class="card reveal">
+      <p>전기차가 달릴 때 받는 저항은 세 가지로 나뉜다.</p>
+    </div>
+
+    <div class="formula reveal">F_trac = F_roll + F_aero + F_grad</div>
+
+    <div class="ig reveal">
+      <div>
+        <div class="ig-emoji">🛞</div>
+        <div class="ig-title">F_roll</div>
+        <div class="ig-desc">구름 저항. 타이어와 도로의 마찰.</div>
+      </div>
+      <div>
+        <div class="ig-emoji">💨</div>
+        <div class="ig-title">F_aero</div>
+        <div class="ig-desc">공기 저항. 속도에 비례해서 커진다.</div>
+      </div>
+      <div>
+        <div class="ig-emoji">⛰</div>
+        <div class="ig-title">F_grad</div>
+        <div class="ig-desc">경사 저항. 도로 기울기에 따라 변한다.</div>
+      </div>
+    </div>
+
+    <div class="formula reveal">F_grad = M × g × sin(δ)</div>
+
+    <div class="card reveal">
+      <p>여기서 δ가 도로의 경사각이다. 도로가 평평하면 sin(δ)=0, 경사가 커지면 값이 커진다.</p>
+    </div>
+
+    <div class="q reveal">
+      <span class="pill">퀴즈 2</span>
+      <div class="q-question">F_grad가 음수가 될 수 있을까?</div>
+      <button class="q-option" data-correct="false">절대 안 된다</button>
+      <button class="q-option" data-correct="true">내리막길에서는 음수가 되어 차를 가속시킨다</button>
+      <button class="q-option" data-correct="false">속도에 따라 양음이 바뀐다</button>
+      <div class="q-feedback">δ가 음수(내리막)면 sin(δ)도 음수가 된다. F_grad는 차량을 가속시키는 방향으로 작용해서 회생 제동이 가능해진다.</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-num reveal">03</div>
+    <h2 class="section-title reveal">등가성 — 경사저항 = 파랑저항</h2>
+
+    <div class="card reveal">
+      <p>여기가 이 논문의 진짜 가치다.</p>
+      <p>전기차의 F_grad(경사 저항)와 선박의 파랑 저항 / 선체 동요(Pitch, Roll)에 의한 토크 변동은 <strong>수학적으로 같은 구조</strong>를 가진다.</p>
+      <p>둘 다 외부 기울기(중력장에 대한 자세)가 만들어내는 사인 함수형 변동이다.</p>
+    </div>
+
+    <div class="cg reveal">
+      <div class="cg-a">
+        <div class="cg-emoji">🚗</div>
+        <div class="cg-title">전기차</div>
+        <div class="cg-desc">F_grad = M·g·sin(δ). 도로 경사 → 모터 토크 변동.</div>
+      </div>
+      <div class="cg-b">
+        <div class="cg-emoji">🚢</div>
+        <div class="cg-title">선박</div>
+        <div class="cg-desc">파랑 저항 = f(파고, Pitch/Roll). 선체 동요 → 프로펠러 토크 변동.</div>
+      </div>
+    </div>
+
+    <div class="hl reveal">
+      <span class="pill">등가성</span>
+      <p class="hl-text">
+        수학 구조가 같다면 해법도 같다. 전기차에서 통한 알고리즘은 선박에서도 통할 가능성이 매우 높다.
+        이것이 졸업 논문에서 "왜 EV 기술을 선박에 가져오는가"에 대한 답이다.
+      </p>
+    </div>
+
+    <div class="q reveal">
+      <span class="pill">퀴즈 3</span>
+      <div class="q-question">전기차 기술을 선박에 가져올 수 있다는 근거는?</div>
+      <button class="q-option" data-correct="false">둘 다 바퀴를 굴린다</button>
+      <button class="q-option" data-correct="true">외부 환경 변동의 수학 구조가 같다</button>
+      <button class="q-option" data-correct="false">둘 다 배터리를 쓴다</button>
+      <div class="q-feedback">단순히 배터리를 쓴다는 게 아니라, 외부 환경의 변동(도로 경사 / 파도)이 만드는 부하 변동의 수학적 구조가 같다는 것이 핵심 근거다.</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-num reveal">04</div>
+    <h2 class="section-title reveal">PSO — 새 떼 알고리즘</h2>
+
+    <div class="card reveal">
+      <p>PSO(Particle Swarm Optimization). 직역하면 "입자 군집 최적화". 자연에서 영감을 받은 알고리즘이다.</p>
+      <p>새 떼가 먹이를 찾을 때, 한 마리가 좋은 곳을 발견하면 다른 새들도 그쪽으로 모인다. 정보를 공유하면서 점점 최적 위치로 수렴한다.</p>
+      <p>PSO는 이걸 흉내낸다. 여러 후보 값(입자)이 서로 정보를 주고받으며 최적의 파라미터를 찾아간다.</p>
+    </div>
+
+    <div class="ex reveal">
+      <span class="ex-label">비유</span>
+      <p class="ex-text">교실에서 가장 맛있는 빵집을 찾는다고 해보자. 50명이 각자 다른 빵집에 가서 평점을 매기고 서로 공유한다. 점점 다들 1등 빵집으로 모인다. 이게 PSO의 사상이다.</p>
+    </div>
+
+    <div class="q reveal">
+      <span class="pill">퀴즈 4</span>
+      <div class="q-question">PSO 알고리즘이 영감을 받은 자연 현상은?</div>
+      <button class="q-option" data-correct="false">바닷속 산호초의 군집</button>
+      <button class="q-option" data-correct="true">새 떼나 물고기 떼의 무리 행동</button>
+      <button class="q-option" data-correct="false">진화론의 자연선택</button>
+      <div class="q-feedback">PSO는 새 떼/물고기 떼가 정보를 공유하며 먹이를 찾는 행동에서 영감을 받았다. 진화론에서 영감을 받은 것은 유전 알고리즘(GA)이다.</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-num reveal">05</div>
+    <h2 class="section-title reveal">PSO로 LPF 차단 주파수를 최적화</h2>
+
+    <div class="card reveal">
+      <p>이 논문이 PSO를 어디에 쓰는가. LPF(저대역 통과 필터)의 차단 주파수를 자동 튜닝하는 데 쓴다.</p>
+      <p>전통 방식은 차단 주파수를 사람이 정해서 고정한다. 어떤 주행 사이클에서는 잘 맞고, 다른 사이클에서는 안 맞는다.</p>
+      <p>PSO를 쓰면 주행 사이클마다 가장 좋은 차단 주파수를 자동으로 찾아준다. 목표는? <strong>배터리 C-rate 스트레스 최소화</strong>.</p>
+    </div>
+
+    <div class="q reveal">
+      <span class="pill">퀴즈 5</span>
+      <div class="q-question">PSO가 최적화하는 변수는?</div>
+      <button class="q-option" data-correct="false">배터리 용량</button>
+      <button class="q-option" data-correct="true">LPF의 차단 주파수</button>
+      <button class="q-option" data-correct="false">모터 회전수</button>
+      <div class="q-feedback">이 논문에서 PSO의 결정 변수는 LPF의 차단 주파수다. 어떤 주파수 이상을 SC에 보내고 이하를 배터리에 보낼지를 결정한다.</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-num reveal">06</div>
+    <h2 class="section-title reveal">우리 시스템의 한계와 연결</h2>
+
+    <div class="card reveal">
+      <p>중간 보고서에서 우리는 τ_smooth = 600초로 고정해서 썼다.</p>
+      <p>이 논문은 정확히 이 부분을 흔든다. "고정하지 마. 자동으로 바꿔."</p>
+      <p>우리도 항해 상태(평온/거친 해상)에 맞춰 τ를 자동으로 조정해야 한다.</p>
+    </div>
+
+    <div class="cg reveal">
+      <div class="cg-a">
+        <div class="cg-emoji">📌</div>
+        <div class="cg-title">중간 보고서</div>
+        <div class="cg-desc">τ = 600초 (고정). 모든 해상 조건에 같은 값.</div>
+      </div>
+      <div class="cg-b">
+        <div class="cg-emoji">🌊</div>
+        <div class="cg-title">졸업 논문 (이식)</div>
+        <div class="cg-desc">τ = f(항해 상태). 평온할 땐 짧게, 거칠 땐 길게.</div>
+      </div>
+    </div>
+
+    <div class="q reveal">
+      <span class="pill">퀴즈 6</span>
+      <div class="q-question">우리 중간 보고서의 τ=600초 고정이 갖는 문제는?</div>
+      <button class="q-option" data-correct="false">계산이 너무 빠르다</button>
+      <button class="q-option" data-correct="true">해상 조건이 바뀌면 적응하지 못한다</button>
+      <button class="q-option" data-correct="false">배터리를 안 쓰게 된다</button>
+      <div class="q-feedback">고정 시상수는 특정 조건에서만 최적이다. 거친 해상에서는 SOC가 포화되고, 평온한 해상에서는 과도하게 보수적으로 작동할 수 있다.</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-num reveal">07</div>
+    <h2 class="section-title reveal">내가 가져갈 것</h2>
+
+    <div class="card reveal">
+      <p><strong>1. 등가성 논리</strong> — 졸업 논문의 "왜 이종 산업 기술인가" 챕터의 핵심 근거. F_grad = 파랑 토크의 수학적 등가.</p>
+      <p><strong>2. 시상수 동적 변경 사상</strong> — 우리 LPF의 τ를 더 이상 고정하지 않는다.</p>
+      <p><strong>3. PSO 또는 유사 최적화</strong> — 선박 항해 사이클을 학습해서 최적 파라미터를 찾는 도구.</p>
+    </div>
+
+    <div class="q reveal">
+      <span class="pill">퀴즈 7</span>
+      <div class="q-question">PSO 외에 비슷한 목적으로 쓸 수 있는 알고리즘이 아닌 것은?</div>
+      <button class="q-option" data-correct="false">유전 알고리즘 (GA)</button>
+      <button class="q-option" data-correct="false">강화학습 (RL)</button>
+      <button class="q-option" data-correct="true">FFT (고속 푸리에 변환)</button>
+      <div class="q-feedback">FFT는 신호 분석 도구이지 최적화 알고리즘이 아니다. GA, RL, 베이지안 최적화 같은 것들이 PSO의 대안이다.</div>
+    </div>
+
+    <div class="q reveal">
+      <span class="pill">퀴즈 8</span>
+      <div class="q-question">PSO의 약점은 무엇인가?</div>
+      <button class="q-option" data-correct="false">정확도가 낮다</button>
+      <button class="q-option" data-correct="true">미리 학습이 필요해서 실시간 적응이 어렵다</button>
+      <button class="q-option" data-correct="false">메모리를 많이 쓴다</button>
+      <div class="q-feedback">PSO는 오프라인에서 최적해를 찾는 데 강하지만, 실시간으로 환경 변화에 대응하는 데는 한계가 있다. 그래서 우리는 APF/ALPF로 보완한다.</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-num reveal">08</div>
+    <h2 class="section-title reveal">정리 — 등가성이라는 무기</h2>
+
+    <div class="hl reveal">
+      <span class="pill">핵심</span>
+      <p class="hl-text">
+        이 논문에서 가장 중요한 건 PSO가 아니다. 등가성이다.
+        F_grad = M·g·sin(δ)와 선박의 파랑 토크가 수학적으로 같다는 점이 졸업 논문의 정당성을 만든다.
+        이 논문은 우리가 "왜 이종 산업 기술을 선박에 가져오는가"에 학술적 근거를 제공한다.
+      </p>
+    </div>
+
+    <div class="q reveal">
+      <span class="pill">퀴즈 9</span>
+      <div class="q-question">이 논문이 우리 졸업 논문에서 가장 중요한 역할은?</div>
+      <button class="q-option" data-correct="false">PSO 알고리즘 자체</button>
+      <button class="q-option" data-correct="true">이종 산업 기술 이식의 학술적 근거 제공</button>
+      <button class="q-option" data-correct="false">전기차 시장 분석</button>
+      <div class="q-feedback">이 논문의 진짜 가치는 등가성이다. EV의 F_grad와 선박의 파랑 토크가 수학적으로 같다는 점이, 우리가 EV 기술을 선박에 가져올 수 있는 정당성을 만든다.</div>
+    </div>
+
+    <div class="q reveal">
+      <span class="pill">퀴즈 10</span>
+      <div class="q-question">F_grad가 가장 크게 작용하는 상황은?</div>
+      <button class="q-option" data-correct="false">평지에서 정속 주행</button>
+      <button class="q-option" data-correct="true">가파른 오르막길 등반</button>
+      <button class="q-option" data-correct="false">정지 상태</button>
+      <div class="q-feedback">δ(경사각)가 클수록 sin(δ)가 커지므로 F_grad도 커진다. 가파른 오르막에서 가장 큰 부하가 걸린다. 선박의 큰 파도 상황과 등가다.</div>
+    </div>
+  </div>
+
+  <div class="score-banner" id="scoreBanner">
+    <h2>퀴즈 결과</h2>
+    <div class="score-num">0/10</div>
+    <div class="score-msg"></div>
+  </div>
+
+  <div class="footer">
+    <div class="footer-quote">"전기차의 경사가 곧 선박의 파도다. 수학이 같으면 해법도 같다."</div>
+    <div class="footer-source">Maghfiroh et al., 2024 · EV HESS PSO LPF</div>
+  </div>
+
+  <div class="nav-btns">
+    <a href="03_Zheng_2022_해군D-MPC.html" class="nav-btn">← 이전</a>
+    <a href="00_index.html" class="nav-btn">목록</a>
+    <a href="05_Liu_2022_철도퍼지로직.html" class="nav-btn primary">다음 →</a>
+  </div>
+</div>
+
+<script>
+const progress=document.querySelector('.progress');
+window.addEventListener('scroll',()=>{const h=document.documentElement.scrollHeight-window.innerHeight;progress.style.width=((window.scrollY/h)*100)+'%'});
+const obs=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)e.target.classList.add('show')}),{rootMargin:'0px 0px -60px 0px'});
+document.querySelectorAll('.reveal').forEach(el=>obs.observe(el));
+let score=0,answered=0;const total=document.querySelectorAll('.q').length;
+document.querySelectorAll('.q').forEach(q=>{const opts=q.querySelectorAll('.q-option');const fb=q.querySelector('.q-feedback');opts.forEach(o=>{o.addEventListener('click',()=>{if(q.dataset.done)return;q.dataset.done='1';const right=o.dataset.correct==='true';o.classList.add(right?'correct':'wrong');if(!right)q.querySelector('[data-correct="true"]').classList.add('correct');opts.forEach(x=>x.disabled=true);fb.classList.add('show',right?'correct':'wrong');if(right)score++;answered++;if(answered===total){const b=document.getElementById('scoreBanner');b.querySelector('.score-num').textContent=score+'/'+total;const m=b.querySelector('.score-msg');if(score===total)m.textContent='완벽해요. 이 논문은 완전 정복!';else if(score>=total*0.75)m.textContent='잘했어요. 핵심은 다 잡았네요.';else if(score>=total*0.5)m.textContent='괜찮아요. 다시 한번 읽어볼까요?';else m.textContent='천천히 다시 읽어보면 좋아요.';b.classList.add('show')}})})});
+</script>
+</body>
+</html>
